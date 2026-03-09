@@ -13,7 +13,7 @@
             {{ errorMessage }}
         </div>
 
-        <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+        <form (ngSubmit)="onSubmit(registerForm)" #registerForm="ngForm">
 
             <!-- Account Type Selection -->
             <div class="type-selector">
@@ -73,9 +73,13 @@
                     <label for="email">Account Email <span class="required">*</span></label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-envelope icon"></i>
-                        <input type="email" id="email" name="email" [(ngModel)]="details.email" required email
+                        <input type="email" id="email" name="email" [(ngModel)]="details.email" #emailModel="ngModel"
+                            required [pattern]="emailPattern"
                             placeholder="hello@example.com">
                     </div>
+                    <small class="field-error" *ngIf="emailModel.invalid && (emailModel.touched || registerForm.submitted)">
+                        Invalid email
+                    </small>
                 </div>
             </div>
 
@@ -222,7 +226,7 @@
                 </div>
             </div>
 
-            <button type="submit" class="btn-primary auth-btn" [disabled]="!registerForm.valid || isLoading">
+            <button type="submit" class="btn-primary auth-btn" [disabled]="isLoading">
                 <i *ngIf="isLoading" class="fa-solid fa-circle-notch fa-spin"></i>
                 <span>{{ isLoading ? 'Initializing Profile...' : 'Create My Account' }}</span>
             </button>

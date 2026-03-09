@@ -3,7 +3,7 @@
   "version": 1,
   "cli": {
     "packageManager": "npm",
-    "analytics": "a8d8e3fe-f24f-40df-99a8-7bdd3c45efe6"
+    "analytics": false
   },
   "newProjectRoot": "projects",
   "projects": {
@@ -74,10 +74,7 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test",
-          "options": {
-            "tsConfig": "tsconfig.spec.json"
-          }
+          "builder": "@angular/build:unit-test"
         }
       }
     }

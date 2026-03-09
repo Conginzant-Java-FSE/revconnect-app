@@ -1,6 +1,7 @@
+
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, RegisterRequest } from '../../../core/services/auth.service';
 
@@ -12,6 +13,7 @@ import { AuthService, RegisterRequest } from '../../../core/services/auth.servic
   styleUrls: ['./register.scss']
 })
 export class Register {
+
   details: RegisterRequest = {
     name: '',
     username: '',
@@ -30,11 +32,11 @@ export class Register {
   errorMessage = '';
   passwordStrength = 0;
   showPassword = false;
+  readonly emailPattern = '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$';
 
   constructor(private authService: AuthService, private router: Router) { }
 
   onTypeChange() {
-    // Clear role-specific fields when switching types
     this.details.category = '';
     this.details.address = '';
     this.details.contactEmail = '';
@@ -54,7 +56,13 @@ export class Register {
     if (/[^A-Za-z0-9]/.test(pbox)) this.passwordStrength += 25;
   }
 
-  onSubmit() {
+  onSubmit(registerForm: NgForm) {
+    if (registerForm.invalid) {
+      registerForm.control.markAllAsTouched();
+      return;
+    }
+
+    this.details.email = this.details.email.trim();
     this.isLoading = true;
     this.errorMessage = '';
 
@@ -71,9 +79,12 @@ export class Register {
       error: (error) => {
         this.isLoading = false;
         console.error('Registration error:', error);
-        this.errorMessage = error.error?.message || `Registration failed (Status: ${error.status}). Please try again.`;
+        this.errorMessage =
+          error.error?.message ||
+          `Registration failed (Status: ${error.status}). Please try again.`;
         alert('Error: ' + this.errorMessage);
       }
     });
   }
 }
+
