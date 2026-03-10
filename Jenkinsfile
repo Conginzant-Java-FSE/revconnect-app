@@ -23,9 +23,22 @@ pipeline {
         stage('Deploy to EC2') {
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-ssh-key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
-                    bat 'ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@65.2.37.229 "mkdir -p /tmp/frontend"'
-                    bat 'scp -o StrictHostKeyChecking=no -i "%SSH_KEY%" -r dist/revconnect-ui/browser/* %SSH_USER%@65.2.37.229:/tmp/frontend/'
-                    bat 'ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@65.2.37.229 "sudo rm -rf /var/www/html/revconnect-ui/browser/*; sudo mkdir -p /var/www/html/revconnect-ui/browser/; sudo cp -r /tmp/frontend/* /var/www/html/revconnect-ui/browser/; sudo chown -R ec2-user:ec2-user /var/www/html/revconnect-ui; sudo systemctl restart nginx"'
+                    powershell '''
+                    $keyPath = "$env:WORKSPACE\\jenkins-key.pem"
+                    Copy-Item -Path $env:SSH_KEY -Destination $keyPath -Force
+
+                    $Acl = Get-Acl $keyPath
+                    $Acl.SetAccessRuleProtection($true, $false)
+                    $Rule = New-Object System.Security.AccessControl.FileSystemAccessRule([System.Security.Principal.WindowsIdentity]::GetCurrent().Name, "Read", "Allow")
+                    $Acl.SetAccessRule($Rule)
+                    Set-Acl -Path $keyPath -AclObject $Acl
+
+                    ssh -o StrictHostKeyChecking=no -i $keyPath ${env:SSH_USER}@65.2.37.229 "mkdir -p /tmp/frontend"
+                    scp -o StrictHostKeyChecking=no -i $keyPath -pr dist/revconnect-ui/browser/* ${env:SSH_USER}@65.2.37.229:/tmp/frontend/
+                    ssh -o StrictHostKeyChecking=no -i $keyPath ${env:SSH_USER}@65.2.37.229 "sudo rm -rf /var/www/html/revconnect-ui/browser/*; sudo mkdir -p /var/www/html/revconnect-ui/browser/; sudo cp -r /tmp/frontend/* /var/www/html/revconnect-ui/browser/; sudo chown -R ec2-user:ec2-user /var/www/html/revconnect-ui; sudo systemctl restart nginx"
+
+                    Remove-Item -Path $keyPath -Force
+                    '''
                 }
             }
         }
