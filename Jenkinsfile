@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'node'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -34,11 +30,8 @@ pipeline {
     }
 
     post {
-        success {
-            echo 'Successfully deployed RevConnect Frontend to EC2'
-        }
-        failure {
-            echo 'Deployment failed! Check the Jenkins logs.'
+        always {
+            echo 'Deployment Pipeline Finished.'
         }
     }
 }
