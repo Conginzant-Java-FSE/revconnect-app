@@ -22,9 +22,11 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
-                bat 'ssh -o StrictHostKeyChecking=no -i "C:\\Users\\navee\\rc-key.pem" ec2-user@65.2.37.229 "mkdir -p /tmp/frontend"'
-                bat 'scp -o StrictHostKeyChecking=no -i "C:\\Users\\navee\\rc-key.pem" -r dist/revconnect-ui/browser/* ec2-user@65.2.37.229:/tmp/frontend/'
-                bat 'ssh -o StrictHostKeyChecking=no -i "C:\\Users\\navee\\rc-key.pem" ec2-user@65.2.37.229 "sudo rm -rf /var/www/html/revconnect-ui/browser/*; sudo mkdir -p /var/www/html/revconnect-ui/browser/; sudo cp -r /tmp/frontend/* /var/www/html/revconnect-ui/browser/; sudo chown -R ec2-user:ec2-user /var/www/html/revconnect-ui; sudo systemctl restart nginx"'
+                withCredentials([sshUserPrivateKey(credentialsId: 'aws-ec2-ssh-key', keyFileVariable: 'SSH_KEY', usernameVariable: 'SSH_USER')]) {
+                    bat 'ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@65.2.37.229 "mkdir -p /tmp/frontend"'
+                    bat 'scp -o StrictHostKeyChecking=no -i "%SSH_KEY%" -r dist/revconnect-ui/browser/* %SSH_USER%@65.2.37.229:/tmp/frontend/'
+                    bat 'ssh -o StrictHostKeyChecking=no -i "%SSH_KEY%" %SSH_USER%@65.2.37.229 "sudo rm -rf /var/www/html/revconnect-ui/browser/*; sudo mkdir -p /var/www/html/revconnect-ui/browser/; sudo cp -r /tmp/frontend/* /var/www/html/revconnect-ui/browser/; sudo chown -R ec2-user:ec2-user /var/www/html/revconnect-ui; sudo systemctl restart nginx"'
+                }
             }
         }
     }
